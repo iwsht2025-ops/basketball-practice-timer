@@ -8,9 +8,11 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@types/node": "^26.6.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
