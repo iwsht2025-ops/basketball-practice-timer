@@ -7,6 +7,61 @@ async function configure(page: Page, work = "1", rest = "1", sets = "3") {
 }
 const start = (page: Page) =>
   page.getByRole("button", { name: "練習を開始", exact: true }).click();
+for (const viewport of [
+  { width: 375, height: 667 },
+  { width: 375, height: 550 },
+  { width: 320, height: 568 },
+]) {
+  test(`edits settings and starts without scrolling at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    const controls = page.locator(
+      "#settings-form input, #settings-form button, #settings-form select, [role=switch], .setup-help summary",
+    );
+    for (const control of await controls.all()) {
+      const rect = await control.boundingBox();
+      expect(rect!.y).toBeGreaterThanOrEqual(0);
+      expect(rect!.y + rect!.height).toBeLessThanOrEqual(viewport.height);
+      expect(rect!.height).toBeGreaterThanOrEqual(44);
+      expect(rect!.width).toBeGreaterThanOrEqual(44);
+    }
+    expect(
+      await page.evaluate(() => document.documentElement.scrollHeight),
+    ).toBeLessThanOrEqual(viewport.height);
+    await page.getByLabel("練習時間（秒）", { exact: true }).fill("3600");
+    await page.getByLabel("休憩時間（秒）", { exact: true }).fill("600");
+    await page.getByLabel("セット数", { exact: true }).fill("999");
+    await page.getByLabel("セット数", { exact: true }).blur();
+    const startButton = page.getByRole("button", {
+      name: "練習を開始",
+      exact: true,
+    });
+    const rect = await startButton.boundingBox();
+    expect(rect!.y + rect!.height).toBeLessThanOrEqual(viewport.height);
+    expect(await page.evaluate(() => scrollY)).toBe(0);
+    await page.screenshot({
+      path: testInfo.outputPath("compact-setup.png"),
+      fullPage: true,
+    });
+    await startButton.click();
+    await expect(page.getByText("練習中", { exact: true })).toBeVisible();
+  });
+}
+test("keeps presets and the sound test accessible in the compact setup", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("休憩時間のプリセット").selectOption("10");
+  await page.getByLabel("セット数のプリセット").selectOption("5");
+  await expect(page.getByLabel("休憩時間（秒）", { exact: true })).toHaveValue("10");
+  await expect(page.getByLabel("セット数", { exact: true })).toHaveValue("5");
+  await page.getByText("使い方", { exact: true }).click();
+  await page.getByRole("button", { name: "音を試す", exact: true }).click();
+  await expect(page.getByText(/最後のセットの後に休憩は入りません/)).toBeVisible();
+  await page.getByText("使い方", { exact: true }).click();
+  await start(page);
+  await expect(page.getByText("練習中", { exact: true })).toBeVisible();
+});
 test("shows the default settings and 130-second total", async ({ page }) => {
   await page.goto("/");
   expect(await page.title()).toContain("COURT CLOCK");
@@ -32,6 +87,15 @@ test("blocks invalid input and keeps keyboard focus", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "練習を開始", exact: true }),
   ).toBeEnabled();
+});
+test("shows the work validation message above the preset buttons", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("練習時間（秒）", { exact: true }).fill("0");
+  const error = page.locator("#workSeconds-error");
+  await expect(error).not.toBeEmpty();
+  const errorRect = await error.boundingBox();
+  const presetRect = await page.getByRole("button", { name: "20秒", exact: true }).boundingBox();
+  expect(errorRect!.y + errorRect!.height).toBeLessThanOrEqual(presetRect!.y);
 });
 test("completes three sets with rest only between work periods", async ({
   page,

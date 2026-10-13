@@ -49,20 +49,19 @@ const stepButtons = (field: NumericField, label: string) =>
 const fieldInput = (field: NumericField, label: string) =>
   `<input id="${field}" data-field="${field}" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${label}" aria-describedby="${field}-error"/><span id="${field}-error" class="field-error"></span>`;
 function setupTemplate() {
-  return `${header()}
-  <main class="setup"><div class="intro"><p class="eyebrow">YOUR PRACTICE. YOUR PACE.</p><h1>練習に、リズムを。</h1><p class="intro-note">時間を決めて、目の前のプレーに集中。</p></div>
+  return `<header class="brand setup-brand"><a class="brand-word" href="./" aria-label="COURT CLOCK ホーム"><span class="brand-mark">${ball}</span><span>COURT<span class="word-clock">CLOCK</span></span></a><div class="setup-tools"><button class="sound-toggle" type="button" role="switch" aria-label="合図の音" aria-checked="true" data-action="sound">${icon("volume")}<span class="toggle-track" aria-hidden="true"><span></span></span></button><details class="setup-help"><summary>使い方</summary><div class="help-content"><p>数字をタップして自由に変更できます。小さな矢印から休憩・セット数のプリセットを選べます。</p><button type="button" class="sound-test" data-action="test-sound">音を試す</button><p>最後のセットの後に休憩は入りません。画面を離れるとタイマーは一時停止します。</p><p>Safari の共有メニューから「ホーム画面に追加」を選んでください。一度オンラインで開き、読み込みが完了してから使えば、オフラインでも練習できます。</p></div></details></div></header>
+  <main class="setup"><h1 class="sr-only">練習の設定</h1>
   <form id="settings-form" novalidate>
     <section class="work-card" aria-labelledby="work-title"><div class="card-label"><span id="work-title">練習時間</span><span class="eyebrow">WORK</span></div>
       <div class="work-input"><button type="button" data-action="step" data-field="workSeconds" data-value="-5" aria-label="練習時間を減らす">−</button><div class="hero-value">${fieldInput("workSeconds", "練習時間（秒）")}<span class="unit">秒</span></div><button type="button" data-action="step" data-field="workSeconds" data-value="5" aria-label="練習時間を増やす">＋</button></div>
       <div class="presets">${[20, 40, 60].map((v) => `<button type="button" data-action="preset" data-field="workSeconds" data-value="${v}">${v}秒</button>`).join("")}</div>
     </section>
-    <div class="secondary-grid"><section class="small-card"><div class="card-label"><span>休憩時間</span><span class="eyebrow">REST</span></div><div class="small-value">${fieldInput("restSeconds", "休憩時間（秒）")}<span class="unit">秒</span></div>${stepButtons("restSeconds", "休憩時間")}<select data-preset="restSeconds" aria-label="休憩時間のプリセット"><option value="">すばやく設定</option><option value="0">休憩なし</option><option value="5">5秒</option><option value="10">10秒</option></select></section>
-    <section class="small-card" id="sets-card"><div class="card-label"><span>セット数</span><span class="eyebrow">SETS</span></div><div class="small-value">${fieldInput("sets", "セット数")}<span class="unit">回</span></div>${stepButtons("sets", "セット数")}<select data-preset="sets" aria-label="セット数のプリセット"><option value="">すばやく設定</option><option value="3">3セット</option><option value="5">5セット</option><option value="10">10セット</option></select></section></div>
+    <div class="secondary-grid"><section class="small-card"><div class="card-label"><span>休憩時間</span><span class="eyebrow">REST</span></div><div class="small-editor"><div class="small-value">${fieldInput("restSeconds", "休憩時間（秒）")}<span class="unit">秒</span></div><select data-preset="restSeconds" aria-label="休憩時間のプリセット"><option value="">⌄</option><option value="0">休憩なし</option><option value="5">5秒</option><option value="10">10秒</option></select></div>${stepButtons("restSeconds", "休憩時間")}</section>
+    <section class="small-card" id="sets-card"><div class="card-label"><span>セット数</span><span class="eyebrow">SETS</span></div><div class="small-editor"><div class="small-value">${fieldInput("sets", "セット数")}<span class="unit">回</span></div><select data-preset="sets" aria-label="セット数のプリセット"><option value="">⌄</option><option value="3">3セット</option><option value="5">5セット</option><option value="10">10セット</option></select></div>${stepButtons("sets", "セット数")}</section></div>
     <div class="mode-switch" aria-label="繰り返しの設定"><button type="button" data-action="endless" data-value="false" aria-pressed="true">回数を指定</button><button type="button" data-action="endless" data-value="true" aria-pressed="false"><span aria-hidden="true">∞</span> エンドレス</button></div>
-    <div class="sound-row"><button class="sound-toggle" type="button" role="switch" aria-label="合図の音" aria-checked="true" data-action="sound">${icon("volume")}<span>合図の音</span><span class="toggle-track" aria-hidden="true"><span></span></span></button><button type="button" class="sound-test" data-action="test-sound">音を試す</button></div>
     <p class="helper-note" id="storage-note" hidden></p>
-    <div class="start-area"><div class="total-row"><span>練習の合計</span><strong id="total-duration"></strong></div><button type="submit" class="primary" id="start-button" aria-label="練習を開始">${icon("play")}<span>練習を開始</span>${icon("arrow")}</button><p class="footer-note">最後のセットの後に休憩は入りません</p></div>
-  </form><details class="install-hint"><summary>ホーム画面に追加して使う</summary><p>Safari の共有メニューから「ホーム画面に追加」を選んでください。一度オンラインで開き、読み込みが完了してから使えば、オフラインでも練習できます。画面を離れるとタイマーは一時停止します。</p></details></main><footer class="app-footer"><span class="tiny-ball">${ball}</span> ONE SET AT A TIME.</footer><p class="sr-only" id="announcement" role="status" aria-live="polite"></p>`;
+    <div class="start-area"><div class="total-row"><span>練習の合計</span><strong id="total-duration"></strong></div><button type="submit" class="primary" id="start-button" aria-label="練習を開始">${icon("play")}<span>練習を開始</span>${icon("arrow")}</button></div>
+  </form></main><p class="sr-only" id="announcement" role="status" aria-live="polite"></p>`;
 }
 const ticks = Array.from({ length: 60 }, (_, i) => {
   const a = (i * Math.PI) / 30;
@@ -154,6 +153,7 @@ export function mountApp(
         announcement = "";
       }
       root.dataset.phase = model.session?.phase ?? "work";
+      root.dataset.screen = screen;
       root.dataset.paused = String(model.session?.status === "paused");
       if (screen === "setup") {
         for (const field of ["workSeconds", "restSeconds", "sets"] as const) {

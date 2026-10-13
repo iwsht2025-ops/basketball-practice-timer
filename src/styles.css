@@ -106,9 +106,6 @@ input {
   color: var(--muted);
   text-align: right;
 }
-.intro {
-  margin: 26px 0 24px;
-}
 .eyebrow {
   font-size: 10px;
   letter-spacing: 2px;
@@ -127,14 +124,9 @@ h1 {
 p {
   margin: 0;
 }
-.intro-note {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.7;
-}
 .work-card {
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 12px;
   background: linear-gradient(125deg, #302820, #242422 80%);
   border: 1px solid #504233;
   position: relative;
@@ -167,7 +159,10 @@ p {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 8px 0 15px;
+  margin: 0;
+}
+.work-input:has(.field-error:not(:empty)) {
+  margin-bottom: 24px;
 }
 .work-input > button {
   width: 44px;
@@ -190,10 +185,10 @@ p {
 .hero-value input {
   color: var(--accent);
   font-weight: 600;
-  font-size: 76px;
-  letter-spacing: -4px;
+  font-size: 56px;
+  letter-spacing: -2px;
   font-variant-numeric: tabular-nums;
-  line-height: 1.15;
+  line-height: 1;
   text-align: center;
   border: 0;
   background: none;
@@ -209,7 +204,7 @@ p {
 .hero-value .unit {
   position: absolute;
   right: 0;
-  bottom: 12px;
+  bottom: 6px;
 }
 .field-error {
   display: block;
@@ -220,7 +215,7 @@ p {
 }
 .hero-value .field-error {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 6px);
   left: 0;
   width: 100%;
 }
@@ -245,35 +240,44 @@ p {
 .secondary-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 8px;
 }
 .small-card {
   background: var(--surface);
   border: 1px solid #2d3136;
-  padding: 16px;
+  padding: 12px;
   border-radius: var(--radius);
   transition: opacity 0.15s;
 }
+.small-editor {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+}
 .small-value {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: baseline;
   justify-content: center;
   flex-wrap: wrap;
-  margin: 8px 0;
+  margin: 0;
 }
 .small-value input {
-  width: calc(100% - 24px);
+  width: calc(100% - 18px);
   padding: 0;
-  font-size: 40px;
-  letter-spacing: -1.5px;
+  font-size: 30px;
+  letter-spacing: -1px;
   font-weight: 550;
   font-variant-numeric: tabular-nums;
   background: none;
   border: 0;
   text-align: center;
   color: inherit;
-  line-height: 1.25;
+  line-height: 1;
+  min-height: 44px;
 }
 .small-value .field-error {
   order: 3;
@@ -295,10 +299,13 @@ p {
   font-size: 18px;
 }
 .small-card select {
-  margin-top: 8px;
-  width: 100%;
+  margin: 0;
+  width: 44px;
+  flex-shrink: 0;
   height: 44px;
-  font-size: 11px;
+  font-size: 16px;
+  appearance: none;
+  text-align: center;
   padding: 0 8px;
   border-radius: 10px;
   border: 1px solid var(--line);
@@ -312,10 +319,10 @@ p {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
-  padding: 4px;
+  padding: 2px;
   border-radius: 14px;
   border: 1px solid #30343a;
-  margin-top: 16px;
+  margin-top: 8px;
   background: #111315;
 }
 .mode-switch button {
@@ -397,7 +404,7 @@ p {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  margin-bottom: 13px;
+  margin-bottom: 4px;
   color: var(--muted);
 }
 .total-row strong {
@@ -677,27 +684,15 @@ dialog::backdrop {
     padding-left: 16px;
     padding-right: 16px;
   }
-  .small-card {
-    padding: 12px;
-  }
   .small-card .eyebrow {
     font-size: 8px;
     letter-spacing: 1px;
   }
-  .hero-value input {
-    font-size: 62px;
-  }
   .hero-value .unit {
     right: -3px;
   }
-  .work-card {
-    padding: 16px;
-  }
   .time {
     font-size: 70px;
-  }
-  .intro h1 {
-    font-size: 25px;
   }
   .sound-row {
     gap: 4px;
@@ -740,9 +735,6 @@ dialog::backdrop {
     min-height: 0;
     padding: 28px;
   }
-  .intro {
-    margin-top: 28px;
-  }
   .timer-screen {
     min-height: 580px;
   }
@@ -755,40 +747,85 @@ dialog::backdrop {
     animation: none !important;
   }
 }
-.install-hint {
-  margin-top: 18px;
-  color: var(--muted);
-  font-size: 11px;
-  text-align: center;
+/* Keep every setup control visible; allow natural scrolling for keyboard,
+   enlarged text, validation messages, and help content. */
+#app[data-screen="setup"] {
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
 }
-.install-hint summary {
+.setup {
+  margin-top: 8px;
+}
+.setup .card-label {
+  line-height: 14px;
+}
+.setup .start-area {
+  margin-top: 8px;
+}
+.setup .primary {
+  height: 52px;
+}
+.setup-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.setup-brand {
+  position: relative;
+}
+.setup-brand .sound-toggle {
+  min-width: 64px;
+  justify-content: center;
+  gap: 4px;
+}
+.setup-help summary {
   min-height: 44px;
+  min-width: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  cursor: pointer;
   list-style: none;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: 12px;
 }
-.install-hint summary::-webkit-details-marker {
+.setup-help summary::-webkit-details-marker {
   display: none;
 }
-.install-hint summary::after {
-  content: "＋";
-  font-size: 13px;
-}
-.install-hint[open] summary::after {
-  content: "−";
-}
-.install-hint summary:focus-visible {
+.setup-help summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 10px;
 }
-.install-hint p {
-  text-align: left;
-  line-height: 1.9;
-  padding: 12px 16px;
+.help-content {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 100%;
+  z-index: 2;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
   background: var(--surface);
-  border-radius: 12px;
+  box-shadow: 0 12px 36px #0008;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #d7d9dc;
+}
+.help-content p + p {
+  margin-top: 12px;
+}
+@media (max-height: 620px) {
+  #app[data-screen="setup"] {
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .setup .work-card,
+  .setup .small-card {
+    padding: 6px;
+    border-radius: 16px;
+  }
+  .setup .hero-value input {
+    font-size: 44px;
+  }
 }
