@@ -1,8 +1,8 @@
 const SCOPE = self.registration.scope;
 const PREFIX = 'court-clock:' + new URL(SCOPE).pathname + ':';
-const CACHE = PREFIX + "651667c2585991cd";
+const CACHE = PREFIX + "63632f5342d81b0c";
 const INDEX = new URL('index.html', SCOPE).href;
-const FILES = ["assets/index-BzJSt3SB.css","assets/index-DwSDoR33.js","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon.svg","index.html","manifest.webmanifest"].map(file => new URL(file, SCOPE).href);
+const FILES = ["assets/index-BE-wcsOM.css","assets/index-DzQCPeH7.js","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon.svg","index.html","manifest.webmanifest"].map(file => new URL(file, SCOPE).href);
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     try {
