@@ -4,6 +4,7 @@ import {createAudioFeedback} from './audio';
 import {createWakeLock,type WakeSource} from './wake-lock';
 import {createSession} from './session';
 import {mountApp,type AppAction,type AppModel} from './view';
+import {registerPwa} from './pwa';
 
 const root=document.querySelector<HTMLElement>('#app')!;
 let storage:Storage|undefined,settings:Settings={...DEFAULT_SETTINGS};
@@ -67,3 +68,4 @@ function hide(){previewGeneration++;audio.stop();session?.hide();syncTicker();}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')hide();});
 window.addEventListener('pagehide',hide);
 render();
+void registerPwa();
