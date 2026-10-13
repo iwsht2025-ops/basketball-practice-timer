@@ -1,21 +1,23 @@
-import { readdir, readFile, writeFile } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
-import { createHash } from 'node:crypto';
+import { readdir, readFile, writeFile } from "node:fs/promises";
+import { resolve, join } from "node:path";
+import { createHash } from "node:crypto";
 
-const directory = resolve(process.argv[2] ?? 'dist');
-async function list(base, prefix = '') {
+const directory = resolve(process.argv[2] ?? "dist");
+async function list(base, prefix = "") {
   const result = [];
   for (const entry of await readdir(base, { withFileTypes: true })) {
     const name = prefix + entry.name;
-    if (entry.isDirectory()) result.push(...await list(join(base, entry.name), name + '/'));
-    else if (name !== 'sw.js') result.push(name);
+    if (entry.isDirectory())
+      result.push(...(await list(join(base, entry.name), name + "/")));
+    else if (name !== "sw.js") result.push(name);
   }
   return result.sort();
 }
 const files = await list(directory);
-const hash = createHash('sha256');
-for (const file of files) hash.update(file).update(await readFile(join(directory, file)));
-const version = hash.digest('hex').slice(0, 16);
+const hash = createHash("sha256");
+for (const file of files)
+  hash.update(file).update(await readFile(join(directory, file)));
+const version = hash.digest("hex").slice(0, 16);
 const worker = `
 const SCOPE = self.registration.scope;
 const PREFIX = 'court-clock:' + new URL(SCOPE).pathname + ':';
@@ -70,5 +72,5 @@ self.addEventListener('fetch', event => {
   }
 });
 `;
-await writeFile(join(directory, 'sw.js'), worker.trimStart());
+await writeFile(join(directory, "sw.js"), worker.trimStart());
 console.log(`PWA: precached ${files.length} files, version ${version}`);
