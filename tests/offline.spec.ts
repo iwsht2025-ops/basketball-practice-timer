@@ -62,6 +62,7 @@ test("reloads offline and completes a practice without network access", async ({
 async function site(prefix = "/") {
   const directory = await mkdtemp(join(tmpdir(), "court-clock-pwa-"));
   await cp(resolve("dist"), directory, { recursive: true });
+  let failedAsset = "";
   const server = createServer(async (req, res) => {
     try {
       const pathname = new URL(req.url!, "http://localhost").pathname;
@@ -71,6 +72,10 @@ async function site(prefix = "/") {
       }
       const relative =
         decodeURIComponent(pathname.slice(prefix.length)) || "index.html";
+      if (relative === failedAsset) {
+        res.writeHead(503).end("Temporarily unavailable");
+        return;
+      }
       const filename = resolve(directory, relative);
       if (!filename.startsWith(directory + "/")) {
         res.writeHead(404).end();
@@ -98,6 +103,9 @@ async function site(prefix = "/") {
   const address = server.address() as { port: number };
   return {
     directory,
+    failAsset(name: string) {
+      failedAsset = name;
+    },
     url: `http://127.0.0.1:${address.port}${prefix}`,
     async close() {
       await new Promise<void>((r, e) =>
@@ -107,6 +115,60 @@ async function site(prefix = "/") {
     },
   };
 }
+test("preserves its known-good offline page after an incomplete update", async ({
+  page,
+  context,
+}) => {
+  const served = await site();
+  try {
+    await page.goto(served.url);
+    await page.evaluate(async () => {
+      await navigator.serviceWorker.ready;
+    });
+    await page.waitForFunction(() =>
+      Boolean(navigator.serviceWorker.controller),
+    );
+    await page.getByLabel("練習時間（秒）", { exact: true }).fill("30");
+    const index = join(served.directory, "index.html");
+    const html = await readFile(index, "utf8");
+    const original = /src="\.\/assets\/([^"]+\.js)"/.exec(html)![1];
+    await cp(
+      join(served.directory, "assets", original),
+      join(served.directory, "assets", "next-bundle.js"),
+    );
+    await writeFile(index, html.replace(original, "next-bundle.js"));
+    served.failAsset("assets/next-bundle.js");
+    execFileSync(process.execPath, ["scripts/build-pwa.mjs", served.directory]);
+    await page.reload();
+    await page.evaluate(async () => {
+      const registration = (await navigator.serviceWorker.getRegistration())!;
+      await registration.update();
+      const worker = registration.installing;
+      if (worker && !["redundant", "activated"].includes(worker.state))
+        await new Promise<void>((resolve) => {
+          const finish = () => {
+            if (["redundant", "activated"].includes(worker.state)) {
+              worker.removeEventListener("statechange", finish);
+              resolve();
+            }
+          };
+          worker.addEventListener("statechange", finish);
+          finish();
+        });
+    });
+    await context.setOffline(true);
+    await page.reload();
+    await expect(
+      page.getByLabel("練習時間（秒）", { exact: true }),
+    ).toHaveValue("30");
+    await expect(
+      page.getByRole("button", { name: "練習を開始", exact: true }),
+    ).toBeEnabled();
+  } finally {
+    await page.close();
+    await served.close();
+  }
+});
 test("works offline when served from a subdirectory", async ({
   page,
   context,

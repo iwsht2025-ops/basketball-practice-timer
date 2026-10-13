@@ -1,12 +1,15 @@
 import { expect, it, vi } from "vitest";
 import { createSession } from "./session";
 const config = { workSeconds: 40, restSeconds: 5, sets: 3, endless: false };
-function setup(unlock: () => Promise<boolean> = async () => true) {
+function setup(
+  unlock: () => Promise<boolean> = async () => true,
+  sessionConfig = config,
+) {
   let now = 0;
   const audio = { unlock, play: vi.fn(), stop: vi.fn(), setEnabled: vi.fn() };
   const wake = { setActive: vi.fn(async () => {}), dispose: vi.fn() };
   const available = vi.fn();
-  const session = createSession(config, {
+  const session = createSession(sessionConfig, {
     now: () => now,
     audio,
     wake,
@@ -65,6 +68,44 @@ it("keeps timing when audio unlock is denied", async () => {
   session.tick();
   expect(available).toHaveBeenCalledWith(false);
   expect(session.getState().phase).toBe("rest");
+});
+it.each([1100, 6500])(
+  "does not replay a delayed initial cue after its work interval at %i",
+  async (elapsed) => {
+    let resolve!: (value: boolean) => void;
+    const activation = new Promise<boolean>((r) => {
+      resolve = r;
+    });
+    const { session, audio, available, time } = setup(() => activation, {
+      ...config,
+      workSeconds: 1,
+      restSeconds: 5,
+    });
+    session.start();
+    time(elapsed);
+    session.tick();
+    const cuesBeforeActivation = audio.play.mock.calls.slice();
+    resolve(true);
+    await Promise.resolve();
+    expect(available).toHaveBeenCalledWith(true);
+    expect(audio.play.mock.calls).toEqual(cuesBeforeActivation);
+  },
+);
+it("suppresses a delayed initial cue even when display updates have not caught up", async () => {
+  let resolve!: (value: boolean) => void;
+  const activation = new Promise<boolean>((r) => {
+    resolve = r;
+  });
+  const { session, audio, time } = setup(() => activation, {
+    ...config,
+    workSeconds: 1,
+    restSeconds: 5,
+  });
+  session.start();
+  time(1100);
+  resolve(true);
+  await Promise.resolve();
+  expect(audio.play).not.toHaveBeenCalled();
 });
 it("emits one completion cue and frees screen wake lock", async () => {
   const { session, audio, wake, time } = setup();

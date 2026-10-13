@@ -26,10 +26,17 @@ export function createSession(config: TimerConfig, deps: SessionDeps) {
   }
   function begin(playStart: boolean) {
     const token = ++generation;
+    const initialDeadline = state.deadlineMs ?? 0;
     void deps.audio.unlock().then((available) => {
       if (token !== generation || disposed) return;
       deps.onAudioAvailability(available);
-      if (available && playStart && state.status === "running")
+      if (
+        available &&
+        playStart &&
+        state.status === "running" &&
+        state.phase === "work" &&
+        deps.now() < initialDeadline
+      )
         deps.audio.play("work-start");
     });
     void deps.wake.setActive(true);

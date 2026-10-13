@@ -52,7 +52,8 @@ self.addEventListener('fetch', event => {
       const cache = await caches.open(CACHE);
       try {
         const response = await fetch(request);
-        if (response.ok) await cache.put(INDEX, response.clone());
+        // Keep the installed index immutable. A newly fetched HTML page may
+        // reference bundles that are not available until a complete update installs.
         return response;
       } catch {
         return (await cache.match(INDEX, {ignoreVary:true})) ?? new Response('Offline', {status:503});
