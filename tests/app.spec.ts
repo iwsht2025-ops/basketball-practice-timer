@@ -98,7 +98,7 @@ test("keeps presets and the sound test accessible in the compact setup", async (
   await start(page);
   await expect(page.getByText("練習中", { exact: true })).toBeVisible();
 });
-test("previews the court buzzer from the sound test", async ({ page }) => {
+test("uses the court buzzer for both preview and starting practice", async ({ page }) => {
   await page.addInitScript(() => {
     const recorded = window as unknown as { playedWaveforms: string[] };
     recorded.playedWaveforms = [];
@@ -116,6 +116,14 @@ test("previews the court buzzer from the sound test", async ({ page }) => {
   await page.goto("/");
   await page.getByText("使い方", { exact: true }).click();
   await page.getByRole("button", { name: "音を試す", exact: true }).click();
+  await expect.poll(() => page.evaluate(
+    () => (window as unknown as { playedWaveforms: string[] }).playedWaveforms,
+  )).toEqual(["sawtooth", "sawtooth"]);
+  await page.getByText("使い方", { exact: true }).click();
+  await page.evaluate(() => {
+    (window as unknown as { playedWaveforms: string[] }).playedWaveforms = [];
+  });
+  await start(page);
   await expect.poll(() => page.evaluate(
     () => (window as unknown as { playedWaveforms: string[] }).playedWaveforms,
   )).toEqual(["sawtooth", "sawtooth"]);

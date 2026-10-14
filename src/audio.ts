@@ -48,21 +48,20 @@ export function createAudioFeedback(
     play(cue) {
       if (!enabled || !ready || !context || context.state !== "running") return;
       stop();
-      const starting = cue === "work-start";
       // Two simultaneous pitches and rich harmonics approximate a court buzzer.
       // A soft attack/release avoids clicks; completion has a longer sustain.
-      const tones = starting ? [880] : [220, 330];
-      const duration = starting ? 0.16 : cue === "work-end" ? 0.55 : 1.05;
+      const tones = [220, 330];
+      const duration = cue === "work-start" ? 0.22 : cue === "work-end" ? 0.55 : 1.05;
       const start = context.currentTime,
         end = start + duration;
       tones.forEach((frequency) => {
         const node = context!.createOscillator(),
           gain = context!.createGain();
-        node.type = starting ? "sine" : "sawtooth";
+        node.type = "sawtooth";
         node.frequency.setValueAtTime(frequency, start);
         gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(starting ? 0.24 : 0.11, start + 0.012);
-        gain.gain.setValueAtTime(starting ? 0.24 : 0.11, end - 0.035);
+        gain.gain.linearRampToValueAtTime(0.11, start + 0.012);
+        gain.gain.setValueAtTime(0.11, end - 0.035);
         gain.gain.linearRampToValueAtTime(0, end);
         node.connect(gain);
         gain.connect(context!.destination);

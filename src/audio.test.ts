@@ -92,6 +92,23 @@ it("ends work with a sustained low buzzer and uses a longer final buzzer", async
   }
   expect(durations[1]).toBeGreaterThan(durations[0] * 1.5);
 });
+it("uses the same court buzzer timbre for a shorter start signal", async () => {
+  const signals = [];
+  for (const cue of ["work-start", "work-end"] as const) {
+    const { fake, notes } = context();
+    const audio = createAudioFeedback(() => fake);
+    await audio.unlock();
+    audio.play(cue);
+    signals.push({
+      timbre: notes.map((note) => `${note.type}:${note.frequency}`),
+      duration: notes[0].stops[0] - notes[0].startTime,
+    });
+  }
+  expect(signals[0].timbre).toEqual(signals[1].timbre);
+  expect(signals[0].duration).toBeGreaterThanOrEqual(0.15);
+  expect(signals[0].duration).toBeLessThanOrEqual(0.3);
+  expect(signals[0].duration).toBeLessThan(signals[1].duration);
+});
 it("does not emit sound when disabled", async () => {
   const { fake, notes } = context();
   const audio = createAudioFeedback(() => fake);
