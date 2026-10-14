@@ -44,11 +44,11 @@ describe("interval timer", () => {
       "finished",
     );
   });
-  it("skips zero rest and emits only the next-work cue", () => {
+  it("skips zero rest and still signals the completed work with a buzzer", () => {
     const state = start({ restSeconds: 0 });
     expect(advanceTimer(state, 40000)).toMatchObject({
       state: { phase: "work", completedSets: 1 },
-      cue: "work-start",
+      cue: "work-end",
     });
     expect(advanceTimer(state, 120000).state.status).toBe("finished");
   });

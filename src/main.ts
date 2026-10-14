@@ -145,7 +145,7 @@ function dispatch(action: AppAction) {
           document.visibilityState === "visible"
         ) {
           model.audioAvailable = available;
-          if (available) audio.play("work-start");
+          if (available) audio.play("work-end");
           render();
         }
       });

@@ -72,7 +72,7 @@ export function advanceTimer(
     },
     cue:
       nowMs >= state.deadlineMs
-        ? phase === "work"
+        ? phase === "work" && rest > 0
           ? "work-start"
           : "work-end"
         : null,

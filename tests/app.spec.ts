@@ -12,6 +12,42 @@ for (const viewport of [
   { width: 375, height: 550 },
   { width: 320, height: 568 },
 ]) {
+  test(`uses work, rest and pause controls without scrolling at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
+    await page.setViewportSize(viewport);
+    await page.clock.install();
+    await configure(page, "2", "15", "3");
+    await start(page);
+    for (const state of ["work", "rest", "paused"] as const) {
+      if (state === "rest") {
+        await page.clock.fastForward(2200);
+        await expect(page.getByText("切り替え・休憩", { exact: true })).toBeVisible();
+      }
+      if (state === "paused") {
+        await page.getByRole("button", { name: "一時停止", exact: true }).click();
+        await expect(page.getByRole("button", { name: "再開", exact: true })).toBeVisible();
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(viewport.height);
+      for (const element of await page.locator(".timer-actions button, #remaining-time, #wake-note").all()) {
+        const rect = await element.boundingBox();
+        expect(rect!.y).toBeGreaterThanOrEqual(0);
+        expect(rect!.y + rect!.height).toBeLessThanOrEqual(viewport.height);
+      }
+      for (const button of await page.locator(".timer-actions button").all()) {
+        expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      }
+      expect(await page.evaluate(() => scrollY)).toBe(0);
+      await page.screenshot({ path: testInfo.outputPath(`compact-${state}.png`), fullPage: true });
+    }
+    await page.getByRole("button", { name: "練習を終了", exact: true }).click();
+    await page.getByRole("button", { name: "終了する", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "おつかれさま。" })).toBeVisible();
+  });
+}
+for (const viewport of [
+  { width: 375, height: 667 },
+  { width: 375, height: 550 },
+  { width: 320, height: 568 },
+]) {
   test(`edits settings and starts without scrolling at ${viewport.width}x${viewport.height}`, async ({
     page,
   }, testInfo) => {
@@ -61,6 +97,28 @@ test("keeps presets and the sound test accessible in the compact setup", async (
   await page.getByText("使い方", { exact: true }).click();
   await start(page);
   await expect(page.getByText("練習中", { exact: true })).toBeVisible();
+});
+test("previews the court buzzer from the sound test", async ({ page }) => {
+  await page.addInitScript(() => {
+    const recorded = window as unknown as { playedWaveforms: string[] };
+    recorded.playedWaveforms = [];
+    const create = AudioContext.prototype.createOscillator;
+    AudioContext.prototype.createOscillator = function () {
+      const node = create.call(this);
+      const begin = node.start.bind(node);
+      node.start = (when?: number) => {
+        recorded.playedWaveforms.push(node.type);
+        begin(when);
+      };
+      return node;
+    };
+  });
+  await page.goto("/");
+  await page.getByText("使い方", { exact: true }).click();
+  await page.getByRole("button", { name: "音を試す", exact: true }).click();
+  await expect.poll(() => page.evaluate(
+    () => (window as unknown as { playedWaveforms: string[] }).playedWaveforms,
+  )).toEqual(["sawtooth", "sawtooth"]);
 });
 test("shows the default settings and 130-second total", async ({ page }) => {
   await page.goto("/");

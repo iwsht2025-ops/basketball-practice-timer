@@ -699,20 +699,41 @@ dialog::backdrop {
   }
 }
 @media (max-height: 720px) {
+  #app[data-screen="timer"] {
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
   .timer-screen .session-top {
-    margin-top: 18px;
+    margin-top: 8px;
   }
   .timer-screen h1 {
-    margin-top: 16px;
+    font-size: 20px;
+    margin: 8px 0 4px;
   }
   .timer-screen .dial {
-    width: min(100%, 280px);
+    width: min(100%, 280px, max(180px, calc(100svh - 340px - env(safe-area-inset-top) - env(safe-area-inset-bottom))));
   }
   .timer-screen .next-set {
-    margin-bottom: 18px;
+    margin: 6px 0 10px;
   }
   .timer-screen .time {
-    font-size: 74px;
+    font-size: clamp(60px, 17vw, 70px);
+  }
+  .timer-screen .phase-label {
+    margin-bottom: 8px;
+  }
+  .timer-screen .dial-caption {
+    margin-top: 8px;
+  }
+  .timer-actions .primary {
+    height: 52px;
+  }
+  .timer-actions .quiet-button {
+    height: 44px;
+    margin-top: 4px;
+  }
+  .timer-screen .wake-note {
+    margin-top: 6px;
   }
   .result-screen {
     margin-top: 24px;
